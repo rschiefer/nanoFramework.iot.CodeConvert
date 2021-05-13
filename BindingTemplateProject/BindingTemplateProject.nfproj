@@ -24,6 +24,7 @@
       <Private>True</Private>
       <SpecificVersion>True</SpecificVersion>
     </Reference>
+    <!-- INSERT NEW REFERENCES HERE -->
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

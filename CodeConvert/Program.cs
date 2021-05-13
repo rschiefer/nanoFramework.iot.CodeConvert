@@ -9,7 +9,7 @@ namespace CodeConvert
     {
         static void Main(string[] args)
         {
-            var sourceDirectory = @"D:\Source\Github\dotnet\iot\";
+            var sourceDirectory = @"D:\Source\Github\dotnet\iot\src\devices\AD5328";
             var filePathFilters = new[] { "\\src\\devices\\" };
             var targetProjectTemplateName = "BindingTemplateProject";
             var outputDirectoryPath = "output";
@@ -34,18 +34,18 @@ namespace CodeConvert
                 var projectName = sourceProjectFile.Name.Replace(".csproj", string.Empty);
                 var targetDirectory = $"{outputDirectoryPath}\\{projectName}";
                 var targetDirectoryInfo = targetProjectTemplateDirectory.CopyDirectory(targetDirectory, new[] { ".user" });
-                sourceProjectFile.Directory.CopyDirectory(targetDirectory, new[] { ".csproj" });
+                sourceProjectFile.Directory.CopyDirectory(targetDirectory);
 
                 var packagesReferences = new[]
                         {
                             new NugetPackages {
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0 - preview.31\lib\System.Device.Gpio.dll </ HintPath ></ Reference > ",
+                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.31\lib\System.Device.Gpio.dll </HintPath ></Reference > ",
                                 PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />"
                             },
                             new NugetPackages {
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Spi.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.28\lib\System.Device.Spi.dll</ HintPath ></ Reference > ",
+                                NewProjectReferenceString = @"<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.28\lib\System.Device.Spi.dll</HintPath ></Reference > ",
                                 PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.28"" targetFramework=""netnanoframework10"" />"
                             },
                             new NugetPackages {
@@ -57,15 +57,25 @@ namespace CodeConvert
                 var projectReplacements = packagesReferences.ToDictionary(x => x.OldProjectReferenceString, x => x.NewProjectReferenceString);
                 projectReplacements.Add("BindingTemplateProject", projectName);
 
+                var oldProjectFile = targetDirectoryInfo.GetFiles("*.csproj").FirstOrDefault();
+                var oldProjectFileContents = File.ReadAllText(oldProjectFile.FullName);
+                var packagesToAdd = packagesReferences.Where(x => oldProjectFileContents.Contains(x.OldProjectReferenceString)).Select(x => x.OldProjectReferenceString).ToArray();
+                oldProjectFile.Delete();
 
-                var packagesToAdd = new string[0];
+                if (packagesToAdd.Any()) {
+                    var projectReferencesString = packagesToAdd
+                        .Select(x => packagesReferences.FirstOrDefault(r => r.OldProjectReferenceString == x).NewProjectReferenceString)
+                                .Aggregate((seed, add) => $"{seed}\n{add}");
+                    projectReplacements.Add("<!-- INSERT NEW REFERENCES HERE -->", projectReferencesString);
+                }
+
                 foreach (var file in targetDirectoryInfo.GetFiles())
                 {
                     if (file.Name.Contains(".nfproj"))
                     {
                         file.MoveTo(file.FullName.Replace("BindingTemplateProject", projectName));
 
-                        packagesToAdd = file.EditFile(projectReplacements);
+                        file.EditFile(projectReplacements);
                     }
                     if (file.Name == "packages.config" && packagesToAdd.Any())
                     {
@@ -88,7 +98,6 @@ namespace CodeConvert
                             {
                                 { "stackalloc", "new" },
                                 { "Span<byte>", "SpanByte" },
-                                { "stackalloc", "new" },
                             });
                     }
                 }
