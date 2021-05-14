@@ -36,78 +36,88 @@ namespace CodeConvert
                 var targetDirectoryInfo = targetProjectTemplateDirectory.CopyDirectory(targetDirectory, new[] { ".user" });
                 sourceProjectFile.Directory.CopyDirectory(targetDirectory);
 
-                var packagesReferences = new[]
+                var nfNugetPackages = new[]
                         {
+//                            new NugetPackages {
+//                                OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
+//                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.38\lib\System.Device.Gpio.dll </HintPath ></Reference > 
+//<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.30\lib\System.Device.Spi.dll</HintPath ></Reference > ",
+//                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.38"" targetFramework=""netnanoframework10"" />
+//<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.30"" targetFramework=""netnanoframework10"" />"
+//                            },
                             new NugetPackages {
+                                Namespace="System.Device.Gpio",
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.38\lib\System.Device.Gpio.dll </HintPath ></Reference > 
-<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.30\lib\System.Device.Spi.dll</HintPath ></Reference > ",
-                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.38"" targetFramework=""netnanoframework10"" />
-<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.30"" targetFramework=""netnanoframework10"" />"
+                                NewProjectReferenceString = @"<Reference Include=""packages\nanoFramework.System.Device.Gpio.1.0.0-preview.31\lib\System.Device.Gpio.dll""></Reference > ",
+                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />"
                             },
-                            //new NugetPackages {
-                            //    OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
-                            //    NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.31\lib\System.Device.Gpio.dll </HintPath ></Reference > ",
-                            //    PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />"
-                            //},
-                            //new NugetPackages {
-                            //    OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
-                            //    NewProjectReferenceString = @"<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.28\lib\System.Device.Spi.dll</HintPath ></Reference > ",
-                            //    PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.28"" targetFramework=""netnanoframework10"" />"
-                            //},
                             new NugetPackages {
+                                Namespace="System.Device.Spi",
+                                OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Spi.csproj"" />",
+                                NewProjectReferenceString = @"<Reference Include=""packages\nanoFramework.System.Device.Spi.1.0.0-preview.28\lib\System.Device.Spi.dll""></Reference > ",
+                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.28"" targetFramework=""netnanoframework10"" />"
+                            },
+                            new NugetPackages {
+                                Namespace="System.Device.I2c",
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.I2c.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.I2c""><HintPath>packages\nanoFramework.System.Device.I2c.1.0.1-preview.31\lib\System.Device.I2c.dll</HintPath><Private>True</Private></Reference>",
-                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.I2c"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />"
+                                NewProjectReferenceString = @"<Reference Include=""packages\nanoFramework.System.Device.I2c.1.0.1-preview.31\lib\System.Device.I2c.dll""></Reference>",
+                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.I2c"" version=""1.0.1-preview.31"" targetFramework=""netnanoframework10"" />"
                             },
                         };
-                var projectReplacements = packagesReferences.ToDictionary(x => x.OldProjectReferenceString, x => x.NewProjectReferenceString);
-                projectReplacements.Add("BindingTemplateProject", projectName);
 
-                var oldProjectFile = targetDirectoryInfo.GetFiles("*.csproj").FirstOrDefault();
-                var oldProjectFileContents = File.ReadAllText(oldProjectFile.FullName);
-                var packagesToAdd = packagesReferences.Where(x => oldProjectFileContents.Contains(x.OldProjectReferenceString)).Select(x => x.OldProjectReferenceString).ToArray();
-                oldProjectFile.Delete();
-
-                if (packagesToAdd.Any()) {
-                    var projectReferencesString = packagesToAdd
-                        .Select(x => packagesReferences.FirstOrDefault(r => r.OldProjectReferenceString == x).NewProjectReferenceString)
-                                .Aggregate((seed, add) => $"{seed}\n{add}");
-                    projectReplacements.Add("<!-- INSERT NEW REFERENCES HERE -->", projectReferencesString);
+                var searches = nfNugetPackages.ToDictionary(x => x.Namespace, x => false);
+                foreach (var file in targetDirectoryInfo.GetFiles("*.cs"))
+                {
+                    searches = file.EditFile(new Dictionary<string, string>
+                        {
+                            { "stackalloc", "new" },
+                            { "Span<byte>", "SpanByte" },
+                        }, searches);
                 }
 
+                // PROJECT FILE
+                // Search for project references in old project file
+                var oldProjectFile = targetDirectoryInfo.GetFiles("*.csproj").FirstOrDefault();
+                var oldProjectFileContents = File.ReadAllText(oldProjectFile.FullName);
+                var oldProjectReferences = nfNugetPackages.Where(x => oldProjectFileContents.Contains(x.Namespace)).Select(x => x.Namespace).ToArray();
+                oldProjectFile.Delete();
 
-                foreach (var file in targetDirectoryInfo.GetFiles())
+                // Rename template project file
+                var targetProjectFile = targetDirectoryInfo.GetFiles("*.nfproj").First();
+                targetProjectFile.MoveTo(targetProjectFile.FullName.Replace("BindingTemplateProject", projectName));
+
+                // Update project name and references in new project file
+                var projectReplacements = new Dictionary<string, string> {
+                    {"BindingTemplateProject", projectName }
+                };
+                var newProjectReferences = new List<string>();
+                if (oldProjectReferences.Any())
                 {
-                    if (file.Name.Contains(".nfproj"))
-                    {
-                        file.MoveTo(file.FullName.Replace("BindingTemplateProject", projectName));
+                    newProjectReferences.AddRange(oldProjectReferences.Select(x => nfNugetPackages.FirstOrDefault(r => r.Namespace == x).NewProjectReferenceString));
+                }
+                newProjectReferences.AddRange(nfNugetPackages.Where(x => searches.Any(s => s.Value && s.Key == x.Namespace)).Select(x => x.NewProjectReferenceString));
+                var newProjectReferencesString = newProjectReferences.Aggregate((seed, add) => $"{seed}\n{add}");
+                projectReplacements.Add("<!-- INSERT NEW REFERENCES HERE -->", newProjectReferencesString);
+                targetProjectFile.EditFile(projectReplacements);
 
-                        file.EditFile(projectReplacements);
-                    }
-                    if (file.Name == "packages.config" && packagesToAdd.Any())
-                    {
-                        var packageReferences = packagesReferences
-                            .Where(x => packagesToAdd.Any(p => p == x.OldProjectReferenceString))
-                            .Select(x => x.PackageConfigReferenceString);
-                        if (packageReferences.Any())
+                // PACKAGES
+                // Add nanoFramework nuget packages based on project references and references in the code
+                var packagesFile = targetDirectoryInfo.GetFiles("packages.config").First();
+                var packageReferences = nfNugetPackages
+                    .Where(x => 
+                        // references from the old project file
+                        oldProjectReferences.Any(p => p == x.Namespace) || 
+                        // references in c# files
+                        searches.Any(s => s.Value && s.Key == x.Namespace))
+                    .Select(x => x.PackageConfigReferenceString);
+                if (packageReferences.Any())
+                {
+                    var packageReferencesString = packageReferences
+                        .Aggregate((seed, add) => $"{seed}\n{add}");
+                    packagesFile.EditFile(new Dictionary<string, string>
                         {
-                            var packageReferencesString = packageReferences
-                                .Aggregate((seed, add) => $"{seed}\n{add}");
-                            file.EditFile(new Dictionary<string, string>
-                            {
-                                { "<!-- INSERT NEW PACKAGES HERE -->", packageReferencesString },
-                            });
-                        }
-                    }
-                    if (file.Name.EndsWith(".cs"))
-                    {
-                        file.EditFile(new Dictionary<string, string>
-                            {
-                                { "stackalloc", "new" },
-                                { "Span<byte>", "SpanByte" },
-                            });
-                    }
+                            { "<!-- INSERT NEW PACKAGES HERE -->", packageReferencesString },
+                        });
                 }
 
 
@@ -152,6 +162,7 @@ EndProject";
         public string OldProjectReferenceString { get; set; }
         public string NewProjectReferenceString { get; set; }
         public string PackageConfigReferenceString { get; set; }
+        public string Namespace { get; internal set; }
     }
     public static class DirectoryInfoExtensions
     {
@@ -171,7 +182,7 @@ EndProject";
     }
     public static class FileInfoExtensions
     {
-        public static string[] EditFile(this FileInfo sourceFile, Dictionary<string, string> replacements)
+        public static Dictionary<string, bool> EditFile(this FileInfo sourceFile, Dictionary<string, string> replacements, Dictionary<string, bool> checkIfFound = null)
         {
             var replacedKeys = new List<string>();
             if (sourceFile.Exists)
@@ -191,6 +202,17 @@ EndProject";
                                 replacedKeys.Add(replacement.Key);
                             }
                         }
+
+                        if (checkIfFound != null)
+                        {
+                            foreach (var check in checkIfFound)
+                            {
+                                if (line.Contains(check.Key))
+                                {
+                                    checkIfFound[check.Key] = line.Contains(check.Key);
+                                }
+                            }
+                        }
                         output.WriteLine(line);
                     }
                 }
@@ -198,7 +220,7 @@ EndProject";
                 sourceFile.Delete();
                 new FileInfo(tempFilename).MoveTo(sourceFile.FullName);
             }
-            return replacedKeys.ToArray();
+            return checkIfFound;
         }
     }
 }
