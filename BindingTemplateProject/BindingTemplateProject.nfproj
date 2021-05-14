@@ -28,6 +28,11 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+    
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="*.cs" />
+    <None Include="*.md" />
   </ItemGroup>
   <Import Project="$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets" Condition="Exists('$(NanoFrameworkProjectSystemPath)NFProjectSystem.CSharp.targets')" />
   <ProjectExtensions>
