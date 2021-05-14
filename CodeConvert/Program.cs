@@ -40,10 +40,10 @@ namespace CodeConvert
                         {
                             new NugetPackages {
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.31\lib\System.Device.Gpio.dll </HintPath ></Reference > 
-<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.28\lib\System.Device.Spi.dll</HintPath ></Reference > ",
-                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />
-<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.28"" targetFramework=""netnanoframework10"" />"
+                                NewProjectReferenceString = @"<Reference Include=""System.Device.Gpio""><HintPath>packages\nanoFramework.System.Device.Gpio.1.0.0-preview.38\lib\System.Device.Gpio.dll </HintPath ></Reference > 
+<Reference Include=""System.Device.Spi""><HintPath>packages\nanoFramework.System.Device.Spi.1.0.0-preview.30\lib\System.Device.Spi.dll</HintPath ></Reference > ",
+                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.Gpio"" version=""1.0.0-preview.38"" targetFramework=""netnanoframework10"" />
+<package id=""nanoFramework.System.Device.Spi"" version=""1.0.0-preview.30"" targetFramework=""netnanoframework10"" />"
                             },
                             //new NugetPackages {
                             //    OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.Gpio.csproj"" />",
@@ -57,8 +57,8 @@ namespace CodeConvert
                             //},
                             new NugetPackages {
                                 OldProjectReferenceString= @"<ProjectReference Include=""$(MainLibraryPath)System.Device.I2c.csproj"" />",
-                                NewProjectReferenceString = @"<Reference Include=""System.Device.I2c""><HintPath>packages\nanoFramework.System.Device.I2c.1.0.1-preview.30\lib\System.Device.I2c.dll</HintPath><Private>True</Private></Reference>",
-                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.I2c"" version=""1.0.0-preview.30"" targetFramework=""netnanoframework10"" />"
+                                NewProjectReferenceString = @"<Reference Include=""System.Device.I2c""><HintPath>packages\nanoFramework.System.Device.I2c.1.0.1-preview.31\lib\System.Device.I2c.dll</HintPath><Private>True</Private></Reference>",
+                                PackageConfigReferenceString = @"<package id=""nanoFramework.System.Device.I2c"" version=""1.0.0-preview.31"" targetFramework=""netnanoframework10"" />"
                             },
                         };
                 var projectReplacements = packagesReferences.ToDictionary(x => x.OldProjectReferenceString, x => x.NewProjectReferenceString);
