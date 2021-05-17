@@ -95,9 +95,13 @@ namespace CodeConvert
                 {
                     newProjectReferences.AddRange(oldProjectReferences.Select(x => nfNugetPackages.FirstOrDefault(r => r.Namespace == x).NewProjectReferenceString));
                 }
+                
                 newProjectReferences.AddRange(nfNugetPackages.Where(x => searches.Any(s => s.Value && s.Key == x.Namespace)).Select(x => x.NewProjectReferenceString));
-                var newProjectReferencesString = newProjectReferences.Aggregate((seed, add) => $"{seed}\n{add}");
-                projectReplacements.Add("<!-- INSERT NEW REFERENCES HERE -->", newProjectReferencesString);
+                if (newProjectReferences.Any())
+                {
+                    var newProjectReferencesString = newProjectReferences.Aggregate((seed, add) => $"{seed}\n{add}");
+                    projectReplacements.Add("<!-- INSERT NEW REFERENCES HERE -->", newProjectReferencesString);
+                }
                 targetProjectFile.EditFile(projectReplacements);
 
                 // PACKAGES
